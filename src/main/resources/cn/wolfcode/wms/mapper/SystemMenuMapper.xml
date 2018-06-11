@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.wms.mapper.SystemMenuMapper">
+    <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.SystemMenu">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="url" property="url"/>
+        <result column="sn" property="sn"/>
+        <association javaType="systemMenu" property="parent">
+            <id column="p_id" property="id"/>
+            <result column="p_name" property="name"/>
+            <result column="p_url" property="url"/>
+            <result column="p_sn" property="sn"/>
+        </association>
+    </resultMap>
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM systemmenu
+        WHERE id = #{id} OR parent_id=#{id}
+    </delete>
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO systemmenu (name, url, sn, parent_id)
+        VALUES (#{name}, #{url}, #{sn}, #{parent.id})
+    </insert>
+    <update id="updateByPrimaryKey">
+        UPDATE systemmenu
+        SET name = #{name},
+        url = #{url},
+        sn = #{sn}
+        WHERE  id = #{id}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT s1.id, s1.name, s1.url, s1.sn,s2.id p_id, s2.name p_name, s2.url p_url, s2.sn p_sn
+        FROM systemmenu s1 LEFT JOIN systemmenu s2 ON s1.parent_id =s2.id
+        WHERE s1.id = #{id}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        select s1.id, s1.name, s1.url, s1.sn,s2.id p_id, s2.name p_name, s2.url p_url, s2.sn p_sn
+        from systemmenu s1 LEFT JOIN systemmenu s2 ON s1.parent_id =s2.id
+        <where>
+            <if test="parentId!=null and ''!=parentId">
+                AND s1.parent_id =#{parentId}
+            </if>
+            <if test="parentId==null">
+                AND s1.parent_id IS NULL
+            </if>
+        </where>
+    </select>
+    <select id="getAllMenus" resultType="systemMenu">
+        SELECT * FROM systemmenu
+        WHERE parent_id IS NOT NULL
+    </select>
+    <select id="selectByRoleId" resultMap="BaseResultMap">
+        SELECT s1.id, s1.name, s1.url FROM systemmenu s1 LEFT JOIN
+        role_menu rm ON s1.id=rm.menu_id
+        WHERE rm.role_id=#{id}
+    </select>
+    <!--<select id="selectByParentSn" resultType="map">-->
+    <!--SELECT child.id,child.name,child.url action ,child.parent_id pId FROM systemmenu child LEFT JOIN-->
+    <!--systemmenu parent ON child.parent_id=parent.id-->
+    <!--WHERE parent.sn=#{parentSn}-->
+    <!--</select>-->
+    <select id="selectMenuByparentId" resultType="map">
+     SELECT DISTINCT  child.id,child.name,child.url action ,child.parent_id pId
+         FROM  systemmenu child
+       LEFT  JOIN  systemmenu parent ON  child.parent_id=parent.id
+         LEFT JOIN role_menu rm ON rm.menu_id=child.id
+          LEFT JOIN employee_role er ON er.role_id=rm.role_id
+         WHERE  parent.sn=#{parentSn}
+         <if test="parentId!=null and  parentId!=''">
+             AND er.employee_id=#{parentId}
+         </if>
+    </select>
+</mapper>

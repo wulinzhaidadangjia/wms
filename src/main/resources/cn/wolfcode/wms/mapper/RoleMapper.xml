@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.wms.mapper.RoleMapper">
+    <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.Role">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="sn" property="sn"/>
+        <collection property="permissions" column="id" ofType="permission"
+                    select="cn.wolfcode.wms.mapper.PermissionMapper.selectByRoleId"/>
+        <collection property="menus" column="id" ofType="systemMenu"
+                    select="cn.wolfcode.wms.mapper.SystemMenuMapper.selectByRoleId"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey">
+    delete from role
+    where id = #{id}
+  </delete>
+    <delete id="deleteRelation">
+        DELETE  FROM  role_permission WHERE  role_id=#{id}
+    </delete>
+    <delete id="deleteMenuRelation">
+          DELETE  FROM  role_menu WHERE  role_id=#{id}
+    </delete>
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    insert into role (name, sn)
+    values (#{name}, #{sn})
+  </insert>
+    <update id="updateByPrimaryKey">
+    update role
+    set name = #{name},
+      sn = #{sn}
+    where id = #{id}
+  </update>
+    <insert id="insertRelation">
+        INSERT role_permission (role_id,permission_id) VALUES (#{roleId} ,#{permissionId})
+    </insert>
+    <insert id="insertMenuRelation">
+        INSERT role_menu (role_id,menu_id) VALUES (#{roleId} ,#{menuId})
+    </insert>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select id, name, sn
+    from role
+    where id = #{id}
+  </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, sn
+    from role
+  </select>
+    <select id="query4Count" resultType="int">
+        SELECT  COUNT(r.id) FROM  role r
+    </select>
+    <select id="query4List" resultMap="BaseResultMap">
+        SELECT  r.id,r.name,r.sn FROM  role r
+    </select>
+    <select id="selectByEmployeeId" resultType="role">
+        select r.id,r.name,r.sn FROM role r LEFT  JOIN  employee_role er ON  r.id=er.role_id WHERE
+        er.employee_id=#{id}
+    </select>
+</mapper>
